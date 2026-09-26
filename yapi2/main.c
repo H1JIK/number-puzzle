@@ -204,8 +204,7 @@ void calculate() {
 }
 
 
-int main() {;
-
+int main() {
 	//inits
 	char* input = NULL;
 	init_dict();
