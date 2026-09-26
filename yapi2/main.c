@@ -63,7 +63,8 @@ int get_digit(char c) {
 
 //machine-independent -> realloc (bigger shift)
 char* read_lines() {
-	char* str = malloc(2);
+	int shift = 16;
+	char* str = malloc(shift);
 	char cur_let;
 	unsigned int idx = 0;
 	do {
@@ -71,11 +72,13 @@ char* read_lines() {
 		if (is_big_alph(cur_let))
 			add_let(cur_let);
 		str[idx++] = cur_let;
-		str = realloc(str, idx + 1);
+		if (idx % shift == 0)
+			str = realloc(str, idx + 1 + shift);
 	}
 	while (cur_let != '\n');
 	str[idx] = '\0';
-	return str;
+	str = realloc(str, (idx + 1));
+	return str;	
 }
 
 void split_str(char* str) {
@@ -83,32 +86,31 @@ void split_str(char* str) {
 	unsigned int start = 0;
 	unsigned int fin = 0;
 	while (str[i] != '\0') {
-		//if (str[i] == ' ') {
-			if (str[i] == ' ') {
-				fin = i - 1;
-				if (fin >= start) {
-					before_equals.list = realloc(before_equals.list, (before_equals.len + 1) * sizeof(char*));
-					before_equals.list[before_equals.len] = malloc((fin - start + 2) * sizeof(char));
-					before_equals.signs = realloc(before_equals.signs, (before_equals.len + 1));	//type char = 1 byte
-					before_equals.signs[before_equals.len] = str[i + 1];
-					for (int j = start; j <= fin; j++) {
-						before_equals.list[before_equals.len][j - start] = str[j];
-					}
-					before_equals.list[before_equals.len++][fin - start + 1] = '\0';
-					i += 3;	//space sign space word
-					start = i;
-				}
-			}
-			if (str[i] == '\n') {
-				fin = i - 1;
-				after_equals = malloc(fin - start + 2);
+		if (str[i] == ' ') {
+			fin = i - 1;
+			if (fin >= start) {
+				before_equals.list = realloc(before_equals.list, (before_equals.len + 1) * sizeof(char*));
+				before_equals.list[before_equals.len] = malloc((fin - start + 2) * sizeof(char));
+				before_equals.signs = realloc(before_equals.signs, (before_equals.len + 1));	//type char = 1 byte
+				before_equals.signs[before_equals.len] = str[i + 1];
 				for (int j = start; j <= fin; j++) {
-					after_equals[j - start] = str[j];
+					before_equals.list[before_equals.len][j - start] = str[j];
 				}
-				after_equals[fin - start + 1] = '\0';
-				return;
+				before_equals.list[before_equals.len++][fin - start + 1] = '\0';
+				i += 3;	//space sign space word
+				start = i;
 			}
-		i++;
+		}
+		if (str[i] == '\n') {
+			fin = i - 1;
+			after_equals = malloc(fin - start + 2);
+			for (int j = start; j <= fin; j++) {
+				after_equals[j - start] = str[j];
+			}
+			after_equals[fin - start + 1] = '\0';
+			return;
+		}
+	i++;
 	}
 }
 
@@ -164,12 +166,12 @@ void print_table() {
 int lets_test() {
 	attemps++;
 	int sum = 0;
-	if (strlen(after_equals) > 1 && get_digit(after_equals[0]) == 0) {		//replace on [1] != '\0'
+	if (after_equals[1] != '\0' && get_digit(after_equals[0]) == 0) {		//replace on [1] != '\0'
 		return 0;
 	}
 	int result = numb_from_word(after_equals);
 	for (int i = 0; i < before_equals.len; i++) {
-		if (strlen(before_equals.list[i]) > 1 && get_digit(before_equals.list[i][0]) == 0) {
+		if (before_equals.list[i] != '\0' && get_digit(before_equals.list[i][0]) == 0) {
 			return 0;
 		}
 		sum += numb_from_word(before_equals.list[i]);
