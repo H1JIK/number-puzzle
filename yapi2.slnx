@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="yapi2/yapi2.vcxproj" Id="1f1ad587-699d-4aed-962e-9d201b0ae24c" />
+</Solution>
