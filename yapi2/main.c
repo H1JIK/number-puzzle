@@ -246,7 +246,7 @@ void brootforce_letters(int cur_pos) {
 			continue;
 		set_let(cd.letter[cur_pos], d);
 		brootforce_letters(cur_pos + 1);
-		if (lets_test()) {
+		if (cur_pos == (strlen(cd.letter) - 1) && lets_test()) {
 			print_stats();
 		}
 	}
