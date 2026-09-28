@@ -26,6 +26,11 @@ char alph[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 unsigned int attemps;
 
+void before_equals_init() {
+	attemps = 0;
+	before_equals.len = 0;
+}
+
 int is_big_alph(char c) {
 	if (c >= 65 && c <= 90)
 		return 1;
@@ -62,13 +67,19 @@ int get_digit(char c) {
 }
 
 //machine-independent -> realloc (bigger shift)
-char* read_lines() {
+char* read_lines(char mode, FILE* f) {
 	int shift = 16;
 	char* str = malloc(shift);
 	char cur_let;
 	unsigned int idx = 0;
 	do {
-		cur_let = fgetc(stdin);
+		if (mode == '1')
+			cur_let = fgetc(stdin);
+		else if (mode == '2') {
+			cur_let = fgetc(f);
+			if (cur_let == EOF)
+				return EOF;
+		}
 		if (is_big_alph(cur_let))
 			add_let(cur_let);
 		str[idx++] = cur_let;
@@ -140,11 +151,8 @@ void print_stats() {
 	}
 	printf("%d\n", numb_from_word(after_equals));
 
-	//clean
-	free(before_equals.list);
-	free(before_equals.signs);
-	free(after_equals);
-	exit(0);
+
+	//exit(0);
 }
 
 void print_table() {
@@ -218,7 +226,9 @@ int calculate() {
 			nums = shift_on_list_left(--len, k + 1, nums);
 		}
 	}
-	return nums[0];
+	int res = nums[0];
+	free(nums);
+	return res;
 }
 
 int lets_test() {
@@ -264,17 +274,51 @@ void run_selection() {
 	brootforce_letters(0);
 }
 
+char input_mode() {
+	char mode;
+	printf("\tModes:\n1-Input\n2-File\nChoose the mode: ");
+	scanf("%c", &mode);
+	while (getchar() != '\n');
+	if (mode != '1' && mode != '2') {
+		printf("ERROR. The mode is incorrect.\n\n\n");
+		return input_mode();
+	}
+	return mode;
+}
 
 int main() {
 	//inits
 	char* input = NULL;
 	init_dict();
-	//start
-	input = read_lines();
-	split_str(input);
-	run_selection();
+	char path[1024];
+	char mode = input_mode();
 
-
-
+	switch (mode) {
+	case '1':
+		printf("Input the string: ");
+		input = read_lines(mode, NULL);
+		split_str(input);
+		run_selection();
+		break;
+	case '2':
+		printf("Input the path of file: ");
+		scanf("%s", path);
+		FILE* f = fopen(path, "r");
+		while (1) {
+			input = read_lines(mode, f);
+			if (input == EOF)
+				exit(0);
+			split_str(input);
+			run_selection();
+			free(input);
+			init_dict();
+			before_equals_init();
+		}
+		break;
+	}
+	//clean
+	free(before_equals.list);
+	free(before_equals.signs);
+	free(after_equals);
 	return 0;
 }
