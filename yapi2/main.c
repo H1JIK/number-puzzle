@@ -12,7 +12,6 @@ typedef struct {
 	char** list;
 	char* signs;
 	unsigned int len;
-	char* used;
 } smart_lst;
 smart_lst before_equals;
 char* after_equals;
@@ -194,6 +193,10 @@ int calculate() {
 				nums[j] *= nums[j + 1];
 				break;
 			case '/':
+				if (nums[j] % nums[j + 1] != 0) {
+					attemps--;
+					return 0;
+				}
 				nums[j] /= nums[j + 1];			//only full-div
 				break;
 			}
@@ -219,8 +222,13 @@ int calculate() {
 }
 
 int lets_test() {
+	if (before_equals.len == 2) {
+		if (strlen(before_equals.list[0]) == strlen(before_equals.list[1])) {
+			if (get_digit(before_equals.list[0][0]) + get_digit(before_equals.list[1][0]) < 9)
+				return 0;
+		}
+	}
 	attemps++;
-	before_equals.used = calloc(before_equals.len, 1);
 	int sum = 0;
 	if (after_equals[1] != '\0' && get_digit(after_equals[0]) == 0) {		//replace on [1] != '\0'
 		return 0;
