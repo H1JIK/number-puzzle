@@ -12,6 +12,7 @@ typedef struct {
 	char** list;
 	char* signs;
 	unsigned int len;
+	char* used;
 } smart_lst;
 smart_lst before_equals;
 char* after_equals;
@@ -163,19 +164,69 @@ void print_table() {
 	}
 }
 
+int* shift_on_list_left(int len, int delete_ind, int* nums) {
+	if (delete_ind > 0) {
+		for (int i = delete_ind; i < len; i++) {
+			nums[i] = nums[i + 1];
+		}
+	}
+	nums = realloc(nums, sizeof(int) * len);
+	return nums;
+}
+
+int calculate() {
+	int len = before_equals.len;
+	int* nums = malloc(len * sizeof(int));
+	int cur_operand = 0;
+
+	//add in list
+	for (int i = 0; i < len; i++) {
+		if (before_equals.list[i][1] != '\0' && get_digit(before_equals.list[i][0]) == 0)
+			return 0;
+		nums[i] = numb_from_word(before_equals.list[i]);
+	}
+
+	//multiply and div
+	for (int j = 0; j < len; j++) {
+		if (before_equals.signs[j] == '*' || before_equals.signs[j] == '/') {
+			switch (before_equals.signs[j]) {
+			case '*':
+				nums[j] *= nums[j + 1];
+				break;
+			case '/':
+				nums[j] /= nums[j + 1];			//only full-div
+				break;
+			}
+			nums = shift_on_list_left(--len, j + 1, nums);
+		}
+	}
+
+	//addition and subtraction
+	for (int k = 0; k < len; k++) {
+		if (before_equals.signs[k] == '+' || before_equals.signs[k] == '-') {
+			switch (before_equals.signs[k]) {
+			case '+':
+				nums[k] += nums[k + 1];
+				break;
+			case '-':
+				nums[k] -= nums[k + 1];
+				break;
+			}
+			nums = shift_on_list_left(--len, k + 1, nums);
+		}
+	}
+	return nums[0];
+}
+
 int lets_test() {
 	attemps++;
+	before_equals.used = calloc(before_equals.len, 1);
 	int sum = 0;
 	if (after_equals[1] != '\0' && get_digit(after_equals[0]) == 0) {		//replace on [1] != '\0'
 		return 0;
 	}
 	int result = numb_from_word(after_equals);
-	for (int i = 0; i < before_equals.len; i++) {
-		if (before_equals.list[i] != '\0' && get_digit(before_equals.list[i][0]) == 0) {
-			return 0;
-		}
-		sum += numb_from_word(before_equals.list[i]);
-	}
+	sum = calculate();
 	return sum == result;
 }
 
@@ -201,7 +252,7 @@ void brootforce_letters(int cur_pos) {
 	}
 }
 
-void calculate() {
+void run_selection() {
 	brootforce_letters(0);
 }
 
@@ -213,7 +264,7 @@ int main() {
 	//start
 	input = read_lines();
 	split_str(input);
-	calculate();
+	run_selection();
 
 
 
