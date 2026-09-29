@@ -150,6 +150,7 @@ void print_stats() {
 		free(before_equals.list[i]);
 	}
 	printf("%d\n", numb_from_word(after_equals));
+	printf("---------------------------------\n");
 
 
 	//exit(0);
@@ -201,7 +202,7 @@ int calculate() {
 				nums[j] *= nums[j + 1];
 				break;
 			case '/':
-				if (nums[j] % nums[j + 1] != 0) {
+				if ((nums[j + 1] == 0) || (nums[j] % nums[j + 1] != 0)) {
 					attemps--;
 					return 0;
 				}
@@ -256,16 +257,18 @@ int already_busy_digit(char c, int d, int pos) {
 	return 0;
 }
 
-void brootforce_letters(int cur_pos) {
+int brootforce_letters(int cur_pos) {
 	if (cur_pos >= strlen(cd.letter))
-		return;
+		return 0;
 	for (int d = 0; d < 10; d++) {
 		if (already_busy_digit(cd.letter[cur_pos], d, cur_pos))
 			continue;
 		set_let(cd.letter[cur_pos], d);
-		brootforce_letters(cur_pos + 1);
+		if (brootforce_letters(cur_pos + 1) == 1)
+			return 1;
 		if (cur_pos == (strlen(cd.letter) - 1) && lets_test()) {
 			print_stats();
+			return 1;
 		}
 	}
 }
