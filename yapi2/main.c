@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
 
 
 #define NOT_INIT -2
@@ -23,7 +25,7 @@ typedef struct {
 char_dict cd;
 
 char alph[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
+clock_t start_time;
 unsigned int attemps;
 
 void before_equals_init() {
@@ -150,6 +152,9 @@ void print_stats() {
 		free(before_equals.list[i]);
 	}
 	printf("%d\n", numb_from_word(after_equals));
+	clock_t end = clock();
+	double seconds = (double)(end - start_time) / CLOCKS_PER_SEC;
+	printf("TIME: %f seconds\n", seconds);
 	printf("---------------------------------\n");
 
 
@@ -187,6 +192,13 @@ int calculate() {
 	int* nums = malloc(len * sizeof(int));
 	int cur_operand = 0;
 
+	//set_let('A', 2);
+	//set_let('B', 5);
+	//set_let('C', 6);
+	//set_let('D', 3);
+	//set_let('E', 4);
+	//set_let('F', 7);
+
 	//add in list
 	for (int i = 0; i < len; i++) {
 		if (before_equals.list[i][1] != '\0' && get_digit(before_equals.list[i][0]) == 0)
@@ -194,37 +206,48 @@ int calculate() {
 		nums[i] = numb_from_word(before_equals.list[i]);
 	}
 
+	
+
+	int numb_shift = 0;
+	int elem_id;
 	//multiply and div
 	for (int j = 0; j < len; j++) {
 		if (before_equals.signs[j] == '*' || before_equals.signs[j] == '/') {
+			elem_id = j - numb_shift;
 			switch (before_equals.signs[j]) {
 			case '*':
-				nums[j] *= nums[j + 1];
+				nums[elem_id] *= nums[elem_id + 1];
 				break;
 			case '/':
-				if ((nums[j + 1] == 0) || (nums[j] % nums[j + 1] != 0)) {
+				if ((nums[elem_id + 1] == 0) || (nums[elem_id] % nums[elem_id + 1] != 0)) {
 					attemps--;
 					return 0;
 				}
-				nums[j] /= nums[j + 1];			//only full-div
+				nums[elem_id] /= nums[elem_id + 1];			//only full-div
 				break;
 			}
-			nums = shift_on_list_left(--len, j + 1, nums);
+			nums = shift_on_list_left(--len, elem_id + 1, nums);
+			numb_shift++;
 		}
 	}
-
+	
+	numb_shift = 0;
 	//addition and subtraction
-	for (int k = 0; k < len; k++) {
+	for (int k = 0; len != 1; k++) {
+		elem_id = k - numb_shift + 1;
 		if (before_equals.signs[k] == '+' || before_equals.signs[k] == '-') {
+			len--;
 			switch (before_equals.signs[k]) {
 			case '+':
-				nums[k] += nums[k + 1];
-				break;
+				nums[0] += nums[elem_id];
+					break;
 			case '-':
-				nums[k] -= nums[k + 1];
+				nums[0] -= nums[elem_id];
 				break;
 			}
-			nums = shift_on_list_left(--len, k + 1, nums);
+		}
+		else {
+			numb_shift++;
 		}
 	}
 	int res = nums[0];
@@ -301,6 +324,7 @@ int main() {
 		printf("Input the string: ");
 		input = read_lines(mode, NULL);
 		split_str(input);
+		start_time = clock();
 		run_selection();
 		break;
 	case '2':
@@ -312,6 +336,7 @@ int main() {
 			if (input == EOF)
 				exit(0);
 			split_str(input);
+			start_time = clock();
 			run_selection();
 			free(input);
 			init_dict();
@@ -319,6 +344,7 @@ int main() {
 		}
 		break;
 	}
+
 	//clean
 	free(before_equals.list);
 	free(before_equals.signs);
